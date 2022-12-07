@@ -8,7 +8,7 @@ Mokapot enhances peptide detection by rescoring PSMs, similar to Percolator, alt
 
 By using nonlinear classification models, Mokapot may identify more PSMs but how many of them are true? 
 
-We added pyrococcus as entrapment in our data to check the ratio of false negatives or entrapments to increased identified. Various machine learning models can be used in this repo by simply choosing the model in main among:
+We added pyrococcus as entrapment in our data to check the ratio of false negatives or entrapments to increased identified. Various machine learning models can be used in this repo by simply choosing the model in main file among:
 ```
 'default', 'random_forest', 'xgboost', 'svc','logistic_regression', 'knn', 'mlp', 'gradient_boost'
  ```
