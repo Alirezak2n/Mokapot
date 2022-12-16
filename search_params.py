@@ -1,3 +1,4 @@
+import numpy as np
 parameters_gboost = {
     'max_depth': [9, 10, 15, 20],
     'min_samples_leaf': [0.001, 0.01, 0.1, 1.0, 5.0],
@@ -51,14 +52,14 @@ parameters_xgboost = {
     'subsample': np.arange(0.5, 1.0, 0.1),
     'colsample_bytree': np.arange(0.4, 1.0, 0.1),
     'colsample_bylevel': np.arange(0.4, 1.0, 0.1),
-    'min_samples_leaf': [0.001, 0.01, 0.1, 1.0, 5.0],
+    # 'min_samples_leaf': [0.001, 0.01, 0.1, 1.0, 5.0],
     'n_estimators': [100, 200, 300, 400]
 }
 
-dict_to_params = {"random_forest" : parameters_rf,
-"xgboost" : parameters_xgboost,
-"svc" : parameters_svc,
-"logistic_regression" : parameters_lr,
-"knn" : parameters_knn,
- "mlp" : parameters_nn,
- "gradient_boost" : parameters_gboost}
+dict_to_params = {"random_forest": parameters_rf,
+                  "xgboost": parameters_xgboost,
+                  "svc": parameters_svc,
+                  "logistic_regression": parameters_lr,
+                  "knn": parameters_knn,
+                  "mlp": parameters_nn,
+                  "gradient_boost": parameters_gboost}

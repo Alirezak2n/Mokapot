@@ -1,7 +1,5 @@
 import entrapment_counter
-import pandas as pd
 import mokapot
-import random
 import time
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
@@ -10,7 +8,6 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 import xgboost as xgb
-import numpy as np
 import logging_setup
 import logging
 from pathlib import Path
@@ -20,22 +17,24 @@ import search_params
 logging.getLogger("mokapot").setLevel(logging.WARNING)
 logger = logging_setup.main(file_name='entrapment_logs.log')
 
+
 def percolator_model(train_subset=500000):
     perco = mokapot.PercolatorModel(subset_max_train=train_subset)
     return perco
 
+
 def mokapot_and_entrapment(
-        model, 
-        ml_model, 
+        model,
+        ml_model,
         psms
-        ):
+):
     result = []
     start_time = time.time()
 
-    #if model == 'default':
-    #    model_obj = ml_model
-    #else:
-    model_obj = mokapot.model.Model(ml_model)
+    if model == 'default':
+       model_obj = ml_model
+    else:
+        model_obj = mokapot.model.Model(ml_model)
 
     results, mokapot_models = mokapot.brew(psms, model=model_obj, max_workers=64)
     logger.info(f"--Mokapot finished in {time.time() - start_time :.2f} seconds--")
@@ -57,25 +56,36 @@ def mokapot_and_entrapment(
 
 def main(
         model='default',
-        number_iterations=20, 
-        cross_validation=None, 
-        verbose=5, 
+        number_iterations=20,
+        cross_validation=None,
+        verbose=5,
         random_state=42,
         number_jobs=15,
-        pin_in='./data/PXD006932/txt/msms_searchengine_ms2pip_rt_features.pin'
-        ):
+        pin_file='./data/PXD006932/txt/msms_searchengine_ms2pip_rt_features.pin'
+):
+    models = {
+        'default': percolator_model,
+        'random_forest': RandomForestClassifier(),
+        'xgboost': xgb.XGBClassifier(),
+        'svc': SVC(),
+        'logistic_regression': LogisticRegression(),
+        'knn': KNeighborsClassifier(),
+        'mlp': MLPClassifier(),
+        'gradient_boost': GradientBoostingClassifier()
+    }
+
     logger.info("--Reading the pin file--")
     start_time = time.time()
-    psms = mokapot.read_pin(pin_in)
+    psms = mokapot.read_pin(pin_file)
     logger.info(f"--The pin file is read in {time.time() - start_time :.2f} seconds--")
 
     params = search_params.dict_to_params[model]
 
     # The min samples leaf
     if "min_samples_leaf" in params.keys():
-        params['min_samples_leaf'] = [v*len(psms) for v in params['min_samples_leaf']]
+        params['min_samples_leaf'] = [v * len(psms) for v in params['min_samples_leaf']]
 
-    model_obj = model()
+    model_obj = models[model]
 
     rs = RandomizedSearchCV(
         estimator=model_obj,
@@ -87,11 +97,12 @@ def main(
         verbose=verbose,
         cv=cross_validation
     )
-    
+
     logger.info(f"--Starting Mokapot with {model} model--")
     mokapot_and_entrapment(model, rs, psms)
 
+
 if __name__ == '__main__':  # 'default','random_forest','xgboost','svc'
     # main('random_forest')
-    main('default')
+    main('xgboost')
     # test()
