@@ -45,10 +45,31 @@ def protein_encoder(protein):
     encod = list(set(encod))
     return ('').join(sorted(encod))
 
+def entapments_peptide_exporter(psms_table=None, fdr=0.01):
+    if psms_table is None:
+        psms_table = pd.read_table('./saved_models/20221221/mlp_0611.mokapot.psms.txt')
+    else:
+        psms_table = pd.read_table(psms_table)
+    psms_table = psms_table[psms_table['mokapot q-value'] <= fdr]
+    protein_dict = proteins_variety()
+    psms_table['Protein_type'] = psms_table.apply(lambda x: protein_checker(x.Proteins, protein_dict), axis=1)
+    psms_table['Protein_encod'] = psms_table.apply(lambda x: protein_encoder(x.Protein_type), axis=1)
+    psms_table_entapments = psms_table[psms_table['Protein_encod'] == '2']
+    psms_table_entapments = psms_table_entapments['Peptide'].tolist()
+    return psms_table_entapments
+
+def id_counter(psms_table):
+    psms_table = pd.read_table(psms_table)
+    length_1fdr = len(psms_table[psms_table['mokapot q-value']<=0.01])
+    q_value_serie=psms_table['mokapot q-value']
+    psms_index=psms_table.index
+    return q_value_serie, psms_index, length_1fdr
 
 def main(psms_table=None, fdr=0.01):
     if psms_table is None:
         psms_table = pd.read_table("./mokapot_default.mokapot.psms.txt")
+    else:
+        psms_table = pd.read_table(psms_table)
     psms_table = psms_table[psms_table['mokapot q-value'] <= fdr]
     protein_dict = proteins_variety()
     psms_table['Protein_type'] = psms_table.apply(lambda x: protein_checker(x.Proteins, protein_dict), axis=1)

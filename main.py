@@ -15,7 +15,7 @@ from pathlib import Path
 import search_params
 
 logging.getLogger("mokapot").setLevel(logging.WARNING)
-logger = logging_setup.main(file_name='entrapment_logs.log')
+logger = logging_setup.main(file_name='new_params_logs.log')
 
 
 def percolator_model(train_subset=500000):
@@ -37,7 +37,7 @@ def mokapot_and_entrapment(
         model_obj = mokapot.model.Model(ml_model)
 
     results, mokapot_models = mokapot.brew(psms, model=model_obj, max_workers=64)
-    logger.info(f"--Mokapot finished in {time.time() - start_time :.2f} seconds--")
+    logger.info(f"--Mokapot finished in {time.time() - start_time :.2f} seconds with {model}--")
 
     folder_time = time.strftime("%Y%m%d")
     file_time = time.strftime("%H%M")
@@ -64,7 +64,7 @@ def main(
         pin_file='./data/PXD006932/txt/msms_searchengine_ms2pip_rt_features.pin'
 ):
     models = {
-        'default': percolator_model,
+        'default': percolator_model(),
         'random_forest': RandomForestClassifier(),
         'xgboost': xgb.XGBClassifier(),
         'svc': SVC(),
@@ -79,30 +79,32 @@ def main(
     psms = mokapot.read_pin(pin_file)
     logger.info(f"--The pin file is read in {time.time() - start_time :.2f} seconds--")
 
-    params = search_params.dict_to_params[model]
-
-    # The min samples leaf
-    if "min_samples_leaf" in params.keys():
-        params['min_samples_leaf'] = [v * len(psms) for v in params['min_samples_leaf']]
-
     model_obj = models[model]
 
-    rs = RandomizedSearchCV(
-        estimator=model_obj,
-        param_distributions=params,
-        scoring="roc_auc",
-        n_iter=number_iterations,
-        random_state=random_state,
-        n_jobs=number_jobs,
-        verbose=verbose,
-        cv=cross_validation
-    )
+    if model != 'default':
+        params = search_params.dict_to_params[model]
 
+        # The min samples leaf
+        if "min_samples_leaf" in params.keys():
+            params['min_samples_leaf'] = [v * len(psms) for v in params['min_samples_leaf']]
+
+        rs = RandomizedSearchCV(
+            estimator=model_obj,
+            param_distributions=params,
+            scoring="roc_auc",
+            n_iter=number_iterations,
+            random_state=random_state,
+            n_jobs=number_jobs,
+            verbose=verbose,
+            cv=cross_validation
+        )
+    elif model == 'default':
+        rs = model_obj
     logger.info(f"--Starting Mokapot with {model} model--")
     mokapot_and_entrapment(model, rs, psms)
 
 
-if __name__ == '__main__':  # 'default','random_forest','xgboost','svc'
+if __name__ == '__main__':  # 'default','random_forest','xgboost','svc','logistic_regression','knn','mlp','gradient_boost'
     # main('random_forest')
-    main('xgboost')
+    main('svc')
     # test()
