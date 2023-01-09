@@ -48,7 +48,7 @@ def protein_encoder(protein):
 def entapments_peptide_exporter(psms_table=None, fdr=0.01):
     if psms_table is None:
         psms_table = pd.read_table('./saved_models/20221221/mlp_0611.mokapot.psms.txt')
-    else:
+    elif not isinstance(psms_table, pd.DataFrame):
         psms_table = pd.read_table(psms_table)
     psms_table = psms_table[psms_table['mokapot q-value'] <= fdr]
     protein_dict = proteins_variety()
@@ -68,7 +68,7 @@ def id_counter(psms_table):
 def main(psms_table=None, fdr=0.01):
     if psms_table is None:
         psms_table = pd.read_table("./mokapot_default.mokapot.psms.txt")
-    else:
+    elif not isinstance(psms_table, pd.DataFrame):
         psms_table = pd.read_table(psms_table)
     psms_table = psms_table[psms_table['mokapot q-value'] <= fdr]
     protein_dict = proteins_variety()
